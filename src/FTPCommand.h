@@ -102,6 +102,15 @@ public:
     if ((_DataConnection != 0) && (_DataConnection->available() > 0)) {
       return _DataConnection->readBytes(c, l);
     }
+    // Brief wait for initial data (max 100ms in 1ms intervals)
+    if (_DataConnection != 0) {
+      for (int i = 0; i < 100; i++) {
+        delay(1);
+        if (_DataConnection->available() > 0) {
+          return _DataConnection->readBytes(c, l);
+        }
+      }
+    }
     return 0;
   }
 

@@ -1,9 +1,13 @@
 #ifndef PASV_H_
 #define PASV_H_
 
-#include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiServer.h>
+#if defined(ESP32)
+#include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 
 #include "../FTPCommand.h"
 #include "../common.h"
@@ -28,10 +32,14 @@ public:
       *_PassiveServer = new WiFiServer(port);
       (*_PassiveServer)->begin();
     }
-    IPAddress localIP  = WiFi.localIP();
-    int       p1       = port / 256;
-    int       p2       = port % 256;
-    String    response = "Entering Passive Mode (" + String(localIP[0]) + "," + String(localIP[1]) + "," + String(localIP[2]) + "," + String(localIP[3]) + "," + String(p1) + "," + String(p2) + ")";
+    IPAddress localIP = WiFi.localIP();
+    if (localIP == IPAddress(0, 0, 0, 0)) {
+      SendResponse(425, "No local IP address for passive mode");
+      return;
+    }
+    int    p1       = port / 256;
+    int    p2       = port % 256;
+    String response = "Entering Passive Mode (" + String(localIP[0]) + "," + String(localIP[1]) + "," + String(localIP[2]) + "," + String(localIP[3]) + "," + String(p1) + "," + String(p2) + ")";
     SendResponse(227, response);
   }
 };
