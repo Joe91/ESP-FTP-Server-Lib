@@ -52,7 +52,7 @@ std::list<String> FTPPath::splitPath(String path) {
   return p;
 }
 
-String FTPPath::createPath(std::list<String> path) {
+String FTPPath::createPath(const std::list<String> &path) {
   if (path.size() == 0) {
     return "/";
   }
