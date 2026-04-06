@@ -46,8 +46,10 @@ private:
   std::list<FTPUser> &_UserList;
   String              _AuthUsername;
 
-  IPAddress _DataAddress;
-  int       _DataPort;
+  IPAddress   _DataAddress;
+  int         _DataPort;
+  WiFiServer *_PassiveServer;
+  bool        _PassiveMode;
 
   FTPPath _WorkDirectory;
 

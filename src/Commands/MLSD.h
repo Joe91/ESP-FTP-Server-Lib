@@ -10,7 +10,7 @@
 
 class MLSD : public FTPCommand {
 public:
-  explicit MLSD(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort) : FTPCommand("MLSD", 1, Client, Filesystem, DataAddress, DataPort) {
+  explicit MLSD(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommand("MLSD", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
