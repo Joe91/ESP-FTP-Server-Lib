@@ -107,7 +107,10 @@ public:
     return true;
   };
   const char *fullName() const override {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-local-addr"
     return ("/" + _Name).c_str();
+#pragma GCC diagnostic pop
   };
   bool isFile() const override {
     return true;

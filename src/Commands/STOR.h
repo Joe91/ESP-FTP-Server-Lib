@@ -35,7 +35,7 @@ public:
     int     nb = data_read(buffer, FTP_BUF_SIZE);
     if (nb > 0) {
       const auto wb = _file.write(buffer, nb);
-      if (wb != nb) {
+      if (wb != static_cast<decltype(wb)>(nb)) {
         _file.close();
         this->_Filesystem->remove(_ftpFsFilePath.c_str());
 
