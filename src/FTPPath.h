@@ -18,6 +18,7 @@ public:
 
   static std::list<String> splitPath(String path);
   static String            createPath(const std::list<String> &path);
+  static bool              isValidFilename(const String &filename);
 
 private:
   std::list<String> _Path;
