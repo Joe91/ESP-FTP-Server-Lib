@@ -45,10 +45,13 @@ public:
         SendResponse(425, "No passive server");
         return false;
       }
-      WiFiServer   *server = *_PassiveServer;
-      unsigned long start  = millis();
-      while (!server->hasClient() && millis() - start < 10000) {
-        delay(10);
+      WiFiServer         *server                 = *_PassiveServer;
+      const unsigned long passiveAcceptTimeoutMs = 100;
+      const unsigned long passivePollDelayMs     = 5;
+      unsigned long       start                  = millis();
+      while (!server->hasClient() && millis() - start < passiveAcceptTimeoutMs) {
+        yield();
+        delay(passivePollDelayMs);
       }
       if (!server->hasClient()) {
         StopPassiveServer();

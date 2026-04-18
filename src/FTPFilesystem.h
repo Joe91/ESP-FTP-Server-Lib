@@ -107,10 +107,9 @@ public:
     return true;
   };
   const char *fullName() const override {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-local-addr"
-    return ("/" + _Name).c_str();
-#pragma GCC diagnostic pop
+    // Update the cached full path and return its pointer
+    _FullName = "/" + _Name;
+    return _FullName.c_str();
   };
   bool isFile() const override {
     return true;
@@ -150,6 +149,7 @@ public:
 
 private:
   String            _Name;
+  mutable String    _FullName; // Cache for fullName() to avoid dangling pointer
   std::list<String> _Filesystems;
 };
 

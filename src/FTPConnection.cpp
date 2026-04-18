@@ -130,7 +130,7 @@ bool FTPConnection::handle() {
     _Line = "";
     return true;
   } else if (command == "FEAT") {
-    _Client.println("211- Extensions suported:");
+    _Client.println("211- Extensions supported:");
     _Client.println(" UTF8");
     _Client.println(" MLSD");
     _Client.println(" PASV");

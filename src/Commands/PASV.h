@@ -23,8 +23,13 @@ public:
       delete *_PassiveServer;
       *_PassiveServer = 0;
     }
-    if (_PassiveMode != 0) {
-      *_PassiveMode = true;
+    IPAddress localIP = WiFi.localIP();
+    if (localIP == IPAddress(0, 0, 0, 0)) {
+      if (_PassiveMode != 0) {
+        *_PassiveMode = false;
+      }
+      SendResponse(425, "No local IP address for passive mode");
+      return;
     }
     int port   = 20000 + random(0, 1000);
     *_DataPort = port;
@@ -32,10 +37,8 @@ public:
       *_PassiveServer = new WiFiServer(port);
       (*_PassiveServer)->begin();
     }
-    IPAddress localIP = WiFi.localIP();
-    if (localIP == IPAddress(0, 0, 0, 0)) {
-      SendResponse(425, "No local IP address for passive mode");
-      return;
+    if (_PassiveMode != 0) {
+      *_PassiveMode = true;
     }
     int    p1       = port / 256;
     int    p2       = port % 256;
