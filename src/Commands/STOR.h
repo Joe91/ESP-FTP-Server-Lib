@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 #define FTP_BUF_SIZE 4096
@@ -17,13 +18,21 @@ public:
     if (trasferInProgress()) {
       return;
     }
+    if (Line.size() < 2) {
+      SendResponse(FTPResponse::SYNTAX_ERROR_PARAMS, "Syntax error in parameters");
+      return;
+    }
+    if (!FTPPath::isValidFilename(Line[1])) {
+      SendResponse(FTPResponse::FILE_NAME_NOT_ALLOWED, "Illegal filename");
+      return;
+    }
     if (!ConnectDataConnection()) {
       return;
     }
     _ftpFsFilePath = WorkDirectory.getFilePath(Line[1]);
     _file          = _Filesystem->open(_ftpFsFilePath, "w");
     if (!_file) {
-      SendResponse(451, "Can't open/create " + _ftpFsFilePath);
+      SendResponse(FTPResponse::FILE_ACTION_ABORTED_LOCAL_ERROR, "Can't open/create " + _ftpFsFilePath);
       CloseDataConnection();
       return;
     }
@@ -39,14 +48,14 @@ public:
         _file.close();
         this->_Filesystem->remove(_ftpFsFilePath.c_str());
 
-        SendResponse(552, "Error occured while STORing");
+        SendResponse(FTPResponse::EXCEEDED_STORAGE, "Error occured while STORing");
         CloseDataConnection();
       }
 
       return;
     }
 
-    SendResponse(226, "File successfully transferred");
+    SendResponse(FTPResponse::TRANSFER_COMPLETE, "File successfully transferred");
     CloseDataConnection();
     _file.close();
   }

@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 
 class DELE : public FTPCommand {
 public:
@@ -11,15 +12,23 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
+    if (Line.size() < 2) {
+      SendResponse(FTPResponse::SYNTAX_ERROR_PARAMS, "Syntax error in parameters");
+      return;
+    }
+    if (!FTPPath::isValidFilename(Line[1])) {
+      SendResponse(FTPResponse::FILE_NAME_NOT_ALLOWED, "Illegal filename");
+      return;
+    }
     String filepath = WorkDirectory.getFilePath(Line[1]);
     if (!_Filesystem->exists(filepath)) {
-      SendResponse(550, "File " + filepath + " not found");
+      SendResponse(FTPResponse::FILE_ACTION_NOT_TAKEN, "File " + filepath + " not found");
       return;
     }
     if (_Filesystem->remove(filepath)) {
-      SendResponse(250, " Deleted \"" + filepath + "\"");
+      SendResponse(FTPResponse::FILE_ACTION_OK, " Deleted \"" + filepath + "\"");
     } else {
-      SendResponse(450, "Can't delete \"" + filepath + "\"");
+      SendResponse(FTPResponse::FILE_ACTION_ABORTED, "Can't delete \"" + filepath + "\"");
     }
   }
 };

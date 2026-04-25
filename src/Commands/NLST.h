@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 class NLST : public FTPCommand {
@@ -12,13 +13,21 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
+    // Validate optional path parameter
+    if (Line.size() > 1 && !FTPPath::isValidFilename(Line[1])) {
+      SendResponse(FTPResponse::FILE_NAME_NOT_ALLOWED, "Illegal filename or path");
+      return;
+    }
+
     if (!ConnectDataConnection()) {
       return;
     }
-    File dir = _Filesystem->open(WorkDirectory.getPath()); //
+
+    String listPath = (Line.size() > 1) ? WorkDirectory.getFilePath(Line[1]) : WorkDirectory.getPath();
+    File   dir      = _Filesystem->open(listPath); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FTPResponse::FILE_ACTION_NOT_TAKEN, "Can't open directory " + WorkDirectory.getPath());
       return;
     }
     int  cnt = 0;
@@ -31,7 +40,7 @@ public:
       f = dir.openNextFile();
     }
     CloseDataConnection();
-    SendResponse(226, String(cnt) + " matches total");
+    SendResponse(FTPResponse::TRANSFER_COMPLETE, String(cnt) + " matches total");
   }
 };
 
