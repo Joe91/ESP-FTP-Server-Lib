@@ -8,7 +8,7 @@
 
 class NLST : public FTPCommand {
 public:
-  explicit NLST(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort) : FTPCommand("NLST", 1, Client, Filesystem, DataAddress, DataPort) {
+  explicit NLST(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommand("NLST", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {

@@ -9,6 +9,7 @@
 #include "Commands/MKD.h"
 #include "Commands/MLSD.h"
 #include "Commands/NLST.h"
+#include "Commands/PASV.h"
 #include "Commands/PORT.h"
 #include "Commands/PWD.h"
 #include "Commands/RETR.h"
@@ -20,19 +21,20 @@
 #include "ESP-FTP-Server-Lib.h"
 #include "common.h"
 
-FTPConnection::FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserList, FTPFilesystem &Filesystem) : _ClientState(Idle), _Client(Client), _Filesystem(Filesystem), _UserList(UserList), _AuthUsername("") {
-  std::shared_ptr<FTPCommandTransfer> retr = std::shared_ptr<FTPCommandTransfer>(new RETR(&_Client, &_Filesystem, &_DataAddress, &_DataPort));
-  std::shared_ptr<FTPCommandTransfer> stor = std::shared_ptr<FTPCommandTransfer>(new STOR(&_Client, &_Filesystem, &_DataAddress, &_DataPort));
+FTPConnection::FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserList, FTPFilesystem &Filesystem) : _ClientState(Idle), _Client(Client), _Filesystem(Filesystem), _UserList(UserList), _AuthUsername(""), _PassiveServer(nullptr), _PassiveMode(false) {
+  std::shared_ptr<FTPCommandTransfer> retr = std::shared_ptr<FTPCommandTransfer>(new RETR(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode));
+  std::shared_ptr<FTPCommandTransfer> stor = std::shared_ptr<FTPCommandTransfer>(new STOR(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode));
 
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new CDUP(&_Client)));
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new CWD(&_Client, &_Filesystem)));
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new DELE(&_Client, &_Filesystem)));
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new STAT(&_Client, &_Filesystem)));
-  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new LIST(&_Client, &_Filesystem, &_DataAddress, &_DataPort)));
-  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new NLST(&_Client, &_Filesystem, &_DataAddress, &_DataPort)));
-  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new MLSD(&_Client, &_Filesystem, &_DataAddress, &_DataPort)));
+  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new LIST(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode)));
+  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new NLST(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode)));
+  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new MLSD(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode)));
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new MKD(&_Client, &_Filesystem)));
-  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new PORT(&_Client, &_DataAddress, &_DataPort)));
+  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new PORT(&_Client, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode)));
+  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new PASV(&_Client, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode)));
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new PWD(&_Client)));
   _FTPCommands.push_back(retr);
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new RMD(&_Client, &_Filesystem)));
@@ -60,6 +62,11 @@ FTPConnection::FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserL
 }
 
 FTPConnection::~FTPConnection() {
+  if (_PassiveServer != nullptr) {
+    _PassiveServer->stop();
+    delete _PassiveServer;
+    _PassiveServer = nullptr;
+  }
 #ifndef NO_GLOBAL_INSTANCES
   Serial.println("Connection closed!");
 #else
@@ -123,9 +130,10 @@ bool FTPConnection::handle() {
     _Line = "";
     return true;
   } else if (command == "FEAT") {
-    _Client.println("211- Extensions suported:");
+    _Client.println("211- Extensions supported:");
     _Client.println(" UTF8");
     _Client.println(" MLSD");
+    _Client.println(" PASV");
     _Client.println("211 End.");
     _Line = "";
     return true;

@@ -8,7 +8,7 @@
 
 class LIST : public FTPCommand {
 public:
-  explicit LIST(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort) : FTPCommand("LIST", 1, Client, Filesystem, DataAddress, DataPort) {
+  explicit LIST(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommand("LIST", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {

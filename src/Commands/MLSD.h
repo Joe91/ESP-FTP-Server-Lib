@@ -10,7 +10,7 @@
 
 class MLSD : public FTPCommand {
 public:
-  explicit MLSD(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort) : FTPCommand("MLSD", 1, Client, Filesystem, DataAddress, DataPort) {
+  explicit MLSD(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommand("MLSD", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
@@ -46,9 +46,9 @@ public:
       data_print(";");
 
       // modify=YYYYMMDDHHMMSS; // GMT (!!!!)
-      char       buf[128];
-      time_t     ft = f.getLastWrite();
-      struct tm *t  = localtime(&ft);
+      char             buf[128];
+      time_t           ft = f.getLastWrite();
+      const struct tm *t  = localtime(&ft);
       sprintf(buf, "modify=%4d%02d%02d%02d%02d%02d;", (t->tm_year) + 1900, (t->tm_mon) + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
       data_print(String(buf));
 
