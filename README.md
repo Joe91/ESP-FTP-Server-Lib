@@ -21,7 +21,8 @@ Currently all kind of simple commands are known to the server:
 * CDUP
 * CWD
 * DELE
-* LISST
+* LIST
+* MLSD
 * MKD
 * PASV
 * PORT
