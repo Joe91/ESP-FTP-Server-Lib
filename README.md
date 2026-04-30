@@ -3,14 +3,6 @@
 This library will provide a simple and modern FTP server for your ESP32 or ESP8266 device.
 You can setup multiple users and mutliple filesystems (SD-Card, MMC-Card or/and SPIFFS).
 
-## Security Features
-
-This library includes comprehensive input validation and security protections:
-- **Filename validation**: Prevents illegal characters in filenames (?, *, :, ", <, >, |, \)
-- **Parameter validation**: Validates command syntax and required parameters
-- **Path traversal protection**: Helps prevent directory traversal attacks
-- **Error handling**: Proper FTP response codes for security-related errors
-
 ## Examples
 
 In the example folder you can find a very simple usage of the FTP server. You just need to setup the users, add the filesystems which you want to use, and call the handle function in the loop.
@@ -23,7 +15,6 @@ Currently all kind of simple commands are known to the server:
 * DELE
 * LISST
 * MKD
-* PASV
 * PORT
 * PWD
 * RETR
@@ -42,12 +33,4 @@ Currently all kind of simple commands are known to the server:
 
 Some commands are still missing, if you need them create a ticket :)
 
-**Security Improvements Completed:**
-- Input validation for all critical commands (DELE, MKD, RETR, RMD, RNFR, RNTO, STOR)
-- Filename validation with illegal character detection
-- Proper error responses with standard FTP codes
-
-**Still missing:**
-- Additional FTP commands: FEAT, MDTM, SIZE, REST
-- Rate limiting and connection throttling
-- Enhanced logging capabilities
+Currently just the active mode is supported. For the passive mode you need to wait until version 1.0.0.

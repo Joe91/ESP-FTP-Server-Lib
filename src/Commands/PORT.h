@@ -25,7 +25,7 @@ public:
       (*_DataAddress)[i] = connection_details[i].toInt();
     }
     *_DataPort = connection_details[4].toInt() * 256 + connection_details[5].toInt();
-    SendResponse(FTPResponse::COMMAND_OK, "PORT command successful");
+    SendResponse(200, "PORT command successful");
   }
 };
 

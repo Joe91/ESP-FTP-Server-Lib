@@ -4,7 +4,6 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
-#include "../FTPResponseCodes.h"
 
 class RNFR_RNTO : public FTPCommand {
 public:
@@ -20,44 +19,30 @@ public:
   }
 
   void from(const FTPPath &WorkDirectory, const std::vector<String> &Line) {
-    if (Line.size() < 2) {
-      SendResponse(FTPResponse::SYNTAX_ERROR_PARAMS, "Syntax error in parameters");
-      return;
-    }
     String filepath = WorkDirectory.getFilePath(Line[1]);
     if (!_Filesystem->exists(filepath)) {
-      SendResponse(FTPResponse::FILE_ACTION_NOT_TAKEN, "File " + Line[1] + " not found");
+      SendResponse(550, "File " + Line[1] + " not found");
       return;
     }
     _fromSet = true;
     _from    = filepath;
-    SendResponse(FTPResponse::FILE_ACTION_PENDING, "RNFR accepted - file exists, ready for destination");
+    SendResponse(350, "RNFR accepted - file exists, ready for destination");
   }
 
   void to(const FTPPath &WorkDirectory, const std::vector<String> &Line) {
-    if (Line.size() < 2) {
-      SendResponse(FTPResponse::SYNTAX_ERROR_PARAMS, "Syntax error in parameters");
-      return;
-    }
     if (!_fromSet) {
-      SendResponse(FTPResponse::BAD_SEQUENCE, "Need RNFR before RNTO");
-      return;
-    }
-    if (!FTPPath::isValidFilename(Line[1])) {
-      SendResponse(FTPResponse::FILE_NAME_NOT_ALLOWED, "Illegal filename");
-      _fromSet = false;
-      _from    = "";
+      SendResponse(503, "Need RNFR before RNTO");
       return;
     }
     String filepath = WorkDirectory.getFilePath(Line[1]);
     if (_Filesystem->exists(filepath)) {
-      SendResponse(FTPResponse::FILE_NAME_NOT_ALLOWED, "File " + Line[1] + " already exists");
+      SendResponse(553, "File " + Line[1] + " already exists");
       return;
     }
     if (_Filesystem->rename(_from, filepath)) {
-      SendResponse(FTPResponse::FILE_ACTION_OK, "File successfully renamed or moved");
+      SendResponse(250, "File successfully renamed or moved");
     } else {
-      SendResponse(FTPResponse::FILE_ACTION_ABORTED_LOCAL_ERROR, "Rename/move failure");
+      SendResponse(451, "Rename/move failure");
     }
     _fromSet = false;
     _from    = "";

@@ -4,7 +4,6 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
-#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 #define FTP_BUF_SIZE 4096
@@ -18,14 +17,6 @@ public:
     if (trasferInProgress()) {
       return;
     }
-    if (Line.size() < 2) {
-      SendResponse(FTPResponse::SYNTAX_ERROR_PARAMS, "Syntax error in parameters");
-      return;
-    }
-    if (!FTPPath::isValidFilename(Line[1])) {
-      SendResponse(FTPResponse::FILE_NAME_NOT_ALLOWED, "Illegal filename");
-      return;
-    }
     if (!ConnectDataConnection()) {
       return;
     }
@@ -33,7 +24,7 @@ public:
     _file       = _Filesystem->open(path);
     if (!_file || _file.isDirectory()) {
       CloseDataConnection();
-      SendResponse(FTPResponse::FILE_ACTION_NOT_TAKEN, "Can't open " + path);
+      SendResponse(550, "Can't open " + path);
       return;
     }
     workOnData();
@@ -47,7 +38,7 @@ public:
       return;
     }
     CloseDataConnection();
-    SendResponse(FTPResponse::TRANSFER_COMPLETE, "File successfully transferred");
+    SendResponse(226, "File successfully transferred");
     _file.close();
   }
 

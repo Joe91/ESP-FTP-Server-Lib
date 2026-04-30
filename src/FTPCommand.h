@@ -8,7 +8,6 @@
 
 #include "FTPFilesystem.h"
 #include "FTPPath.h"
-#include "FTPResponseCodes.h"
 
 class FTPCommand {
 public:
@@ -43,7 +42,7 @@ public:
     }
     if (_PassiveMode != 0 && *_PassiveMode) {
       if (_PassiveServer == 0 || *_PassiveServer == 0) {
-        SendResponse(FTPResponse::NO_DATA_CONNECTION, "No passive server");
+        SendResponse(425, "No passive server");
         return false;
       }
       WiFiServer         *server                 = *_PassiveServer;
@@ -56,28 +55,28 @@ public:
       }
       if (!server->hasClient()) {
         StopPassiveServer();
-        SendResponse(FTPResponse::NO_DATA_CONNECTION, "No data connection");
+        SendResponse(425, "No data connection");
         return false;
       }
       WiFiClient client = server->accept();
       if (!client) {
         StopPassiveServer();
-        SendResponse(FTPResponse::NO_DATA_CONNECTION, "No data connection");
+        SendResponse(425, "No data connection");
         return false;
       }
       *_DataConnection = client;
       StopPassiveServer();
       *_PassiveMode = false;
-      SendResponse(FTPResponse::DATA_CONNECTION_OPEN, "Accepted data connection");
+      SendResponse(150, "Accepted data connection");
       return true;
     }
     _DataConnection->connect(*_DataAddress, *_DataPort);
     if (!_DataConnection->connected()) {
       _DataConnection->stop();
-      SendResponse(FTPResponse::NO_DATA_CONNECTION, "No data connection");
+      SendResponse(425, "No data connection");
       return false;
     }
-    SendResponse(FTPResponse::DATA_CONNECTION_OPEN, "Accepted data connection");
+    SendResponse(150, "Accepted data connection");
     return true;
   }
 
@@ -165,7 +164,7 @@ public:
   void abort() {
     if (_file) {
       CloseDataConnection();
-      SendResponse(FTPResponse::CONNECTION_CLOSED, "Transfer aborted");
+      SendResponse(426, "Transfer aborted");
       _file.close();
     }
   }
