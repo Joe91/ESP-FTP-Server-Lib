@@ -12,13 +12,13 @@ public:
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     if (Line[1] == "A") {
-      SendResponse(200, "TYPE is now ASCII");
+      SendResponse(FtpCodes::COMMAND_OK, "TYPE is now ASCII");
       return;
     } else if (Line[1] == "I") {
-      SendResponse(200, "TYPE is now 8-bit binary");
+      SendResponse(FtpCodes::COMMAND_OK, "TYPE is now 8-bit binary");
       return;
     }
-    SendResponse(504, "Unknow TYPE");
+    SendResponse(FtpCodes::COMMAND_NOT_IMPLEMENTED_FOR_PARAMETER, "Unknown TYPE");
   }
 };
 

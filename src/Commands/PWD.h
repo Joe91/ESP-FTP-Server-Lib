@@ -11,7 +11,7 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
-    SendResponse(257, "\"" + WorkDirectory.getPath() + "\" is your current directory");
+    SendResponse(FtpCodes::PATHNAME_CREATED, "\"" + WorkDirectory.getPath() + "\" is your current directory");
   }
 };
 

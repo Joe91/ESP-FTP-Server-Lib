@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 class STAT : public FTPCommand {
@@ -14,7 +15,7 @@ public:
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     File dir = _Filesystem->open(WorkDirectory.getPath()); //
     if (!dir || !dir.isDirectory()) {
-      SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getPath());
       return;
     }
     int  cnt = 0;
@@ -38,7 +39,7 @@ public:
       f.close();
       f = dir.openNextFile();
     }
-    SendResponse(226, String(cnt) + " matches total");
+    SendResponse(FtpCodes::TRANSFER_COMPLETE, String(cnt) + " matches total");
   }
 };
 

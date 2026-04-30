@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 
 class MKD : public FTPCommand {
 public:
@@ -13,13 +14,13 @@ public:
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     String filepath = WorkDirectory.getFilePath(Line[1]);
     if (_Filesystem->exists(filepath)) {
-      SendResponse(521, "Can't create \"" + filepath + "\", Directory exists");
+      SendResponse(FtpCodes::FILE_ACTION_NOT_TAKEN, "Can't create \"" + filepath + "\", Directory exists");
       return;
     }
     if (_Filesystem->mkdir(filepath)) {
-      SendResponse(257, "\"" + filepath + "\" created");
+      SendResponse(FtpCodes::PATHNAME_CREATED, "\"" + filepath + "\" created");
     } else {
-      SendResponse(550, "Can't create \"" + filepath + "\"");
+      SendResponse(FtpCodes::FILE_ACTION_NOT_TAKEN, "Can't create \"" + filepath + "\"");
     }
   }
 };
