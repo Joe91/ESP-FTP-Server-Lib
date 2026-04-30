@@ -12,17 +12,31 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
+    FTPPath listPath = WorkDirectory;
+
+    // 1. Better Argument Parsing
+    // Look for the first argument that DOES NOT start with '-'
+    // This correctly skips 'LIST -la /sdcard' flags and finds the path
+    for (size_t i = 1; i < Line.size(); ++i) {
+      if (!Line[i].startsWith("-") && !Line[i].isEmpty()) {
+        listPath.changePath(Line[i]);
+        break;
+      }
+    }
+
     if (!ConnectDataConnection()) {
       return;
     }
-    File dir = _Filesystem->open(WorkDirectory.getPath()); //
+    File dir = _Filesystem->open(listPath.getPath()); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(550, "Can't open directory " + listPath.getPath());
       return;
     }
-    int  cnt = 0;
-    File f   = dir.openNextFile();
+    int cnt = 2;
+    data_println("drwxr-xr-x 1 owner group 0 Jan 01  1970 .");
+    data_println("drwxr-xr-x 1 owner group 0 Jan 01  1970 ..");
+    File f = dir.openNextFile();
     while (f) {
       String filename = f.name();
       filename.remove(0, filename.lastIndexOf('/') + 1);

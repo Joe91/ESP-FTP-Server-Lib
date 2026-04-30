@@ -108,6 +108,7 @@ bool FTPConnection::handle() {
   logPrintlnD(_Line);
 #endif
   String command = _LineSplited[0];
+  command.toUpperCase();
 
   // This commands are always possible:
   if (command == "SYST") {
@@ -149,6 +150,10 @@ bool FTPConnection::handle() {
       cmd->abort();
     }
     _Client.println("226 Data connection closed");
+    _Line = "";
+    return true;
+  } else if (command == "CLNT") {
+    _Client.println("200 Ok");
     _Line = "";
     return true;
   }

@@ -14,16 +14,24 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
+    // Handle arguments: MLSD can take a path or flags
+    FTPPath listPath = WorkDirectory;
+    if (Line.size() > 1 && !Line[1].isEmpty() && Line[1] != Line[0] && !Line[1].startsWith("-")) {
+      // If argument exists, is not empty, is not the command itself, and doesn't start with -, treat it as a path
+      listPath.changePath(Line[1]);
+    }
+    // Flags are ignored for compatibility
+
     if (!ConnectDataConnection()) {
       return;
     }
 
-    File root = _Filesystem->open(WorkDirectory.getPath(), "r");
+    File root = _Filesystem->open(listPath.getPath(), "r");
 
     if (!root || !root.isDirectory()) {
       root.close();
       CloseDataConnection();
-      SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(550, "Can't open directory " + listPath.getPath());
       return;
     }
 

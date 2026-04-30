@@ -21,11 +21,14 @@ public:
       SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
       return;
     }
-    int  cnt = 0;
-    File f   = dir.openNextFile();
+    int cnt = 2;
+    data_println(".");
+    data_println("..");
+    File f = dir.openNextFile();
     while (f) {
       String filename = f.name();
       filename.remove(0, filename.lastIndexOf('/') + 1);
+      data_println(filename);
       cnt++;
       f.close();
       f = dir.openNextFile();
