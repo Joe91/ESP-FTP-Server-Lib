@@ -77,9 +77,18 @@ FTPConnection::~FTPConnection() {
 bool FTPConnection::readUntilLineEnd() {
   while (_Client.available()) {
     char c = _Client.read();
+    if (c == '\r')
+      continue; // Ignore carriage returns
     if (c == '\n') {
-      uint32_t index_separator = _Line.indexOf(' ');
-      _LineSplited             = {_Line.substring(0, index_separator), _Line.substring(index_separator + 1, _Line.length())};
+      int index_separator = _Line.indexOf(' ');
+      if (index_separator != -1) {
+        // Correctly split into Command and Arguments
+        _LineSplited = {_Line.substring(0, index_separator), _Line.substring(index_separator + 1)};
+      } else {
+        // No space found? Arguments are empty.
+        _LineSplited = {_Line, ""};
+      }
+      _Line = ""; // Reset buffer for next line
       return true;
     }
     if (c >= 32) {
@@ -108,6 +117,7 @@ bool FTPConnection::handle() {
   logPrintlnD(_Line);
 #endif
   String command = _LineSplited[0];
+  command.toUpperCase();
 
   // This commands are always possible:
   if (command == "SYST") {
@@ -149,6 +159,10 @@ bool FTPConnection::handle() {
       cmd->abort();
     }
     _Client.println("226 Data connection closed");
+    _Line = "";
+    return true;
+  } else if (command == "CLNT") {
+    _Client.println("200 Ok");
     _Line = "";
     return true;
   }

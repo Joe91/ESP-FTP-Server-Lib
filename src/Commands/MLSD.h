@@ -14,16 +14,30 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
+    FTPPath listPath = WorkDirectory;
+    // 1. Check if we have arguments
+    if (Line.size() > 1) {
+      String args = Line[1];
+      args.trim(); // Modifies 'args' in place
+
+      if (!args.isEmpty()) {
+        String path = ExtractPathFromOptions(args);
+        if (!path.isEmpty()) {
+          listPath.changePath(path);
+        }
+      }
+    }
+
     if (!ConnectDataConnection()) {
       return;
     }
 
-    File root = _Filesystem->open(WorkDirectory.getPath(), "r");
+    File root = _Filesystem->open(listPath.getPath(), "r");
 
     if (!root || !root.isDirectory()) {
       root.close();
       CloseDataConnection();
-      SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(550, "Can't open directory " + listPath.getPath());
       return;
     }
 
