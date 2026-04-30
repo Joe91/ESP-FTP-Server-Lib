@@ -14,13 +14,16 @@ public:
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     FTPPath listPath = WorkDirectory;
 
-    // 1. Better Argument Parsing
-    // Look for the first argument that DOES NOT start with '-'
-    // This correctly skips 'LIST -la /sdcard' flags and finds the path
-    for (size_t i = 1; i < Line.size(); ++i) {
-      if (!Line[i].startsWith("-") && !Line[i].isEmpty()) {
-        listPath.changePath(Line[i]);
-        break;
+    // 1. Check if we have arguments
+    if (Line.size() > 1) {
+      String args = Line[1];
+      args.trim(); // Modifies 'args' in place
+
+      if (!args.isEmpty()) {
+        String path = ExtractPathFromOptions(args);
+        if (!path.isEmpty()) {
+          listPath.changePath(path);
+        }
       }
     }
 

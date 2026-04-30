@@ -14,13 +14,19 @@ public:
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
-    // Handle arguments: MLSD can take a path or flags
     FTPPath listPath = WorkDirectory;
-    if (Line.size() > 1 && !Line[1].isEmpty() && Line[1] != Line[0] && !Line[1].startsWith("-")) {
-      // If argument exists, is not empty, is not the command itself, and doesn't start with -, treat it as a path
-      listPath.changePath(Line[1]);
+    // 1. Check if we have arguments
+    if (Line.size() > 1) {
+      String args = Line[1];
+      args.trim(); // Modifies 'args' in place
+
+      if (!args.isEmpty()) {
+        String path = ExtractPathFromOptions(args);
+        if (!path.isEmpty()) {
+          listPath.changePath(path);
+        }
+      }
     }
-    // Flags are ignored for compatibility
 
     if (!ConnectDataConnection()) {
       return;
