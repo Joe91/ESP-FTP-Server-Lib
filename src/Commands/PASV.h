@@ -10,6 +10,7 @@
 #endif
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 class PASV : public FTPCommand {
@@ -28,7 +29,7 @@ public:
       if (_PassiveMode != 0) {
         *_PassiveMode = false;
       }
-      SendResponse(425, "No local IP address for passive mode");
+      SendResponse(FtpCodes::NO_DATA_CONNECTION, "No local IP address for passive mode");
       return;
     }
     int port   = 20000 + random(0, 1000);
@@ -43,7 +44,7 @@ public:
     int    p1       = port / 256;
     int    p2       = port % 256;
     String response = "Entering Passive Mode (" + String(localIP[0]) + "," + String(localIP[1]) + "," + String(localIP[2]) + "," + String(localIP[3]) + "," + String(p1) + "," + String(p2) + ")";
-    SendResponse(227, response);
+    SendResponse(FtpCodes::ENTERING_PASV_MODE, response);
   }
 };
 

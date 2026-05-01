@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 class NLST : public FTPCommand {
@@ -18,7 +19,7 @@ public:
     File dir = _Filesystem->open(WorkDirectory.getPath()); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(550, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getPath());
       return;
     }
     int cnt = 2;
@@ -34,7 +35,7 @@ public:
       f = dir.openNextFile();
     }
     CloseDataConnection();
-    SendResponse(226, String(cnt) + " matches total");
+    SendResponse(FtpCodes::TRANSFER_COMPLETE, String(cnt) + " matches total");
   }
 };
 

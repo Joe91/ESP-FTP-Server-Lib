@@ -23,7 +23,7 @@ public:
     _ftpFsFilePath = WorkDirectory.getFilePath(Line[1]);
     _file          = _Filesystem->open(_ftpFsFilePath, "w");
     if (!_file) {
-      SendResponse(451, "Can't open/create " + _ftpFsFilePath);
+      SendResponse(FtpCodes::FILE_ACTION_ABORTED_LOCAL_ERROR, "Can't open/create " + _ftpFsFilePath);
       CloseDataConnection();
       return;
     }
@@ -39,14 +39,14 @@ public:
         _file.close();
         this->_Filesystem->remove(_ftpFsFilePath.c_str());
 
-        SendResponse(552, "Error occured while STORing");
+        SendResponse(FtpCodes::EXCEEDED_STORAGE, "Error occured while STORing");
         CloseDataConnection();
       }
 
       return;
     }
 
-    SendResponse(226, "File successfully transferred");
+    SendResponse(FtpCodes::TRANSFER_COMPLETE, "File successfully transferred");
     CloseDataConnection();
     _file.close();
   }

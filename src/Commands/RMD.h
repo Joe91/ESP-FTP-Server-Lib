@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 
 class RMD : public FTPCommand {
 public:
@@ -13,13 +14,13 @@ public:
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     String filepath = WorkDirectory.getFilePath(Line[1]);
     if (!_Filesystem->exists(filepath)) {
-      SendResponse(550, "Folder " + filepath + " not found");
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Folder " + filepath + " not found");
       return;
     }
     if (_Filesystem->rmdir(filepath)) {
-      SendResponse(250, " Deleted \"" + filepath + "\"");
+      SendResponse(FtpCodes::FILE_ACTION_OK, " Deleted \"" + filepath + "\"");
     } else {
-      SendResponse(450, "Can't delete \"" + filepath + "\"");
+      SendResponse(FtpCodes::FILE_ACTION_ABORTED, "Can't delete \"" + filepath + "\"");
     }
   }
 };

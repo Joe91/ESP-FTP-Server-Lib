@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 
 class CWD : public FTPCommand {
 public:
@@ -20,9 +21,9 @@ public:
     File dir = _Filesystem->open(path.getPath());
     if (dir.isDirectory()) {
       WorkDirectory = path;
-      SendResponse(250, "Ok. Current directory is " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::COMMAND_OK, "Ok. Current directory is " + WorkDirectory.getPath());
     } else {
-      SendResponse(550, "Directory does not exist");
+      SendResponse(FtpCodes::FILE_ACTION_NOT_TAKEN, "Directory does not exist");
     }
   }
 };

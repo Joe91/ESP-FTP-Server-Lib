@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 
 #define FTP_BUF_SIZE 4096
@@ -24,7 +25,7 @@ public:
     _file       = _Filesystem->open(path);
     if (!_file || _file.isDirectory()) {
       CloseDataConnection();
-      SendResponse(550, "Can't open " + path);
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open " + path);
       return;
     }
     workOnData();
@@ -38,7 +39,7 @@ public:
       return;
     }
     CloseDataConnection();
-    SendResponse(226, "File successfully transferred");
+    SendResponse(FtpCodes::TRANSFER_COMPLETE, "File successfully transferred");
     _file.close();
   }
 

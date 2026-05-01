@@ -5,6 +5,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 #include "../common.h"
 #include <time.h>
 
@@ -37,7 +38,7 @@ public:
     if (!root || !root.isDirectory()) {
       root.close();
       CloseDataConnection();
-      SendResponse(550, "Can't open directory " + listPath.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getPath());
       return;
     }
 
@@ -81,7 +82,7 @@ public:
 
     root.close();
     CloseDataConnection();
-    SendResponse(226, String(cnt) + " matches total");
+    SendResponse(FtpCodes::TRANSFER_COMPLETE, String(cnt) + " matches total");
   }
 };
 

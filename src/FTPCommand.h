@@ -8,6 +8,7 @@
 
 #include "FTPFilesystem.h"
 #include "FTPPath.h"
+#include "FTPResponseCodes.h"
 
 class FTPCommand {
 public:
@@ -42,7 +43,7 @@ public:
     }
     if (_PassiveMode != 0 && *_PassiveMode) {
       if (_PassiveServer == 0 || *_PassiveServer == 0) {
-        SendResponse(425, "No passive server");
+        SendResponse(FtpCodes::NO_DATA_CONNECTION, "No passive server");
         return false;
       }
       WiFiServer         *server                 = *_PassiveServer;
@@ -55,28 +56,28 @@ public:
       }
       if (!server->hasClient()) {
         StopPassiveServer();
-        SendResponse(425, "No data connection");
+        SendResponse(FtpCodes::NO_DATA_CONNECTION, "No data connection");
         return false;
       }
       WiFiClient client = server->accept();
       if (!client) {
         StopPassiveServer();
-        SendResponse(425, "No data connection");
+        SendResponse(FtpCodes::NO_DATA_CONNECTION, "No data connection");
         return false;
       }
       *_DataConnection = client;
       StopPassiveServer();
       *_PassiveMode = false;
-      SendResponse(150, "Accepted data connection");
+      SendResponse(FtpCodes::DATA_CONNECTION_OPEN, "Accepted data connection");
       return true;
     }
     _DataConnection->connect(*_DataAddress, *_DataPort);
     if (!_DataConnection->connected()) {
       _DataConnection->stop();
-      SendResponse(425, "No data connection");
+      SendResponse(FtpCodes::NO_DATA_CONNECTION, "No data connection");
       return false;
     }
-    SendResponse(150, "Accepted data connection");
+    SendResponse(FtpCodes::DATA_CONNECTION_OPEN, "Accepted data connection");
     return true;
   }
 
@@ -105,9 +106,9 @@ public:
     if ((_DataConnection != 0) && (_DataConnection->available() > 0)) {
       return _DataConnection->readBytes(c, l);
     }
-    // Brief wait for initial data (max 100ms in 1ms intervals)
+    // Brief wait for initial data (max 500ms in 1ms intervals)
     if (_DataConnection != 0) {
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 500; i++) {
         delay(1);
         if (_DataConnection->available() > 0) {
           return _DataConnection->readBytes(c, l);
@@ -164,7 +165,7 @@ public:
   void abort() {
     if (_file) {
       CloseDataConnection();
-      SendResponse(426, "Transfer aborted");
+      SendResponse(FtpCodes::CONNECTION_CLOSED, "Transfer aborted");
       _file.close();
     }
   }

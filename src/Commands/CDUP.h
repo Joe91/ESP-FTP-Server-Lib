@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 
 #include "../FTPCommand.h"
+#include "../FTPResponseCodes.h"
 
 class CDUP : public FTPCommand {
 public:
@@ -12,7 +13,7 @@ public:
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     WorkDirectory.goPathUp();
-    SendResponse(250, "Ok. Current directory is " + WorkDirectory.getPath());
+    SendResponse(FtpCodes::COMMAND_OK, "Ok. Current directory is " + WorkDirectory.getPath());
   }
 };
 
