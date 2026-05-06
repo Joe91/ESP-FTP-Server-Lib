@@ -17,6 +17,7 @@ public:
   void addUser(const FTPUser &User);
 
   void addFilesystem(String Name, FS *const Filesystem);
+  void setFileNameSanitization(std::function<void(String &filename)> fn);
 
   bool begin();
   void handle();
@@ -29,7 +30,8 @@ private:
   std::list<FTPUser>                        _UserList;
   std::list<std::shared_ptr<FTPConnection>> _Connections;
 
-  FTPFilesystem _Filesystem;
+  FTPFilesystem                         _Filesystem;
+  std::function<void(String &filename)> _SanitizationFn = nullptr;
 };
 
 #endif

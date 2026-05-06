@@ -10,7 +10,7 @@
 
 class STOR : public FTPCommandTransfer {
 public:
-  explicit STOR(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommandTransfer("STOR", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
+  explicit STOR(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0, std::function<void(String &filename)> SanitizationFn = nullptr) : FTPCommandTransfer("STOR", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode, SanitizationFn) {
   }
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
@@ -21,7 +21,10 @@ public:
       return;
     }
     _ftpFsFilePath = WorkDirectory.getFilePath(Line[1]);
-    _file          = _Filesystem->open(_ftpFsFilePath, "w");
+    if (_SanitizationFn) {
+      _SanitizationFn(_ftpFsFilePath);
+    }
+    _file = _Filesystem->open(_ftpFsFilePath, "w");
     if (!_file) {
       SendResponse(FtpCodes::FILE_ACTION_ABORTED_LOCAL_ERROR, "Can't open/create " + _ftpFsFilePath);
       CloseDataConnection();

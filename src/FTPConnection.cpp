@@ -21,9 +21,9 @@
 #include "ESP-FTP-Server-Lib.h"
 #include "common.h"
 
-FTPConnection::FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserList, FTPFilesystem &Filesystem) : _ClientState(Idle), _Client(Client), _Filesystem(Filesystem), _UserList(UserList), _AuthUsername(""), _PassiveServer(nullptr), _PassiveMode(false) {
+FTPConnection::FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserList, FTPFilesystem &Filesystem, std::function<void(String &filename)> SanitizationFn) : _ClientState(Idle), _Client(Client), _Filesystem(Filesystem), _UserList(UserList), _AuthUsername(""), _PassiveServer(nullptr), _PassiveMode(false) {
   std::shared_ptr<FTPCommandTransfer> retr = std::shared_ptr<FTPCommandTransfer>(new RETR(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode));
-  std::shared_ptr<FTPCommandTransfer> stor = std::shared_ptr<FTPCommandTransfer>(new STOR(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode));
+  std::shared_ptr<FTPCommandTransfer> stor = std::shared_ptr<FTPCommandTransfer>(new STOR(&_Client, &_Filesystem, &_DataAddress, &_DataPort, &_PassiveServer, &_PassiveMode, SanitizationFn));
 
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new CDUP(&_Client)));
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new CWD(&_Client, &_Filesystem)));
@@ -38,7 +38,7 @@ FTPConnection::FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserL
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new PWD(&_Client)));
   _FTPCommands.push_back(retr);
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new RMD(&_Client, &_Filesystem)));
-  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new RNFR_RNTO(&_Client, &_Filesystem)));
+  _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new RNFR_RNTO(&_Client, &_Filesystem, SanitizationFn)));
   _FTPCommands.push_back(stor);
   _FTPCommands.push_back(std::shared_ptr<FTPCommand>(new TYPE(&_Client)));
 

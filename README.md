@@ -11,26 +11,31 @@ In the example folder you can find a very simple usage of the FTP server. You ju
 
 Currently all kind of simple commands are known to the server:
 * CDUP
+* CLNT
 * CWD
 * DELE
+* FEAT
 * LISST
 * MKD
+* MLSD
+* NLST
+* OPTS
+* PASV
 * PORT
 * PWD
 * RETR
 * RMD
 * RNFR
 * RNTO
+* STAT
 * STOR
 * TYPE
+* USER
+* PASS
 * SYST
 * QUIT
 * ABOR
-* NLST
-* STAT
 
 ## What is still missing / TODO
 
 Some commands are still missing, if you need them create a ticket :)
-
-Currently just the active mode is supported. For the passive mode you need to wait until version 1.0.0.

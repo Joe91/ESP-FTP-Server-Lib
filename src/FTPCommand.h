@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <WiFiClient.h>
 #include <WiFiServer.h>
+#include <functional>
 #include <vector>
 
 #include "FTPFilesystem.h"
@@ -12,7 +13,8 @@
 
 class FTPCommand {
 public:
-  FTPCommand(String Name, int ExpectedArgumentCnt, WiFiClient *const Client, FTPFilesystem *const Filesystem = 0, IPAddress *DataAddress = 0, int *DataPort = 0, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : _Name(Name), _ExpectedArgumentCnt(ExpectedArgumentCnt), _Filesystem(Filesystem), _DataAddress(DataAddress), _DataPort(DataPort), _PassiveServer(PassiveServer), _PassiveMode(PassiveMode), _Client(Client), _DataConnection(0) {
+  FTPCommand(String Name, int ExpectedArgumentCnt, WiFiClient *const Client, FTPFilesystem *const Filesystem = 0, IPAddress *DataAddress = 0, int *DataPort = 0, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0, std::function<void(String &filename)> SanitizationFn = nullptr)
+      : _Name(Name), _ExpectedArgumentCnt(ExpectedArgumentCnt), _Filesystem(Filesystem), _DataAddress(DataAddress), _DataPort(DataPort), _PassiveServer(PassiveServer), _PassiveMode(PassiveMode), _Client(Client), _DataConnection(0), _SanitizationFn(SanitizationFn) {
   }
   virtual ~FTPCommand() {
     if (_DataConnection != 0) {
@@ -138,13 +140,14 @@ private:
   }
 
 protected:
-  String               _Name;
-  int                  _ExpectedArgumentCnt;
-  FTPFilesystem *const _Filesystem;
-  IPAddress *const     _DataAddress;
-  int *const           _DataPort;
-  WiFiServer **const   _PassiveServer;
-  bool *const          _PassiveMode;
+  String                                _Name;
+  int                                   _ExpectedArgumentCnt;
+  FTPFilesystem *const                  _Filesystem;
+  IPAddress *const                      _DataAddress;
+  int *const                            _DataPort;
+  WiFiServer **const                    _PassiveServer;
+  bool *const                           _PassiveMode;
+  std::function<void(String &filename)> _SanitizationFn;
 
 private:
   WiFiClient *const _Client;
@@ -153,7 +156,7 @@ private:
 
 class FTPCommandTransfer : public FTPCommand {
 public:
-  FTPCommandTransfer(String Name, int ExpectedArgumentCnt, WiFiClient *const Client, FTPFilesystem *const Filesystem = 0, IPAddress *DataAddress = 0, int *DataPort = 0, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommand(Name, ExpectedArgumentCnt, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
+  FTPCommandTransfer(String Name, int ExpectedArgumentCnt, WiFiClient *const Client, FTPFilesystem *const Filesystem = 0, IPAddress *DataAddress = 0, int *DataPort = 0, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0, std::function<void(String &filename)> SanitizationFn = nullptr) : FTPCommand(Name, ExpectedArgumentCnt, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode, SanitizationFn) {
   }
 
   virtual void workOnData() = 0;

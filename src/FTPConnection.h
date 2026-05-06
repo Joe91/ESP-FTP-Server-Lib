@@ -16,7 +16,7 @@
 
 class FTPConnection {
 public:
-  FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserList, FTPFilesystem &Filesystem);
+  FTPConnection(const WiFiClient &Client, std::list<FTPUser> &UserList, FTPFilesystem &Filesystem, std::function<void(String &filename)> SanitizationFn = nullptr);
   virtual ~FTPConnection();
 
   bool readUntilLineEnd();
