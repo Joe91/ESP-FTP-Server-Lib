@@ -34,7 +34,7 @@ public:
       for (int i = 0; i < fill_cnt; i++) {
         data_print(" ");
       }
-      data_println(filesize + " Jan 01  1970 " + filename);
+      data_println(filesize + " Jan 01  1970 " + WorkDirectory.reparse(filename));
       cnt++;
       f.close();
       f = dir.openNextFile();

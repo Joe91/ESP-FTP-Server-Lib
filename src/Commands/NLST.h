@@ -29,7 +29,7 @@ public:
     while (f) {
       String filename = f.name();
       filename.remove(0, filename.lastIndexOf('/') + 1);
-      data_println(filename);
+      data_println(WorkDirectory.reparse(filename));
       cnt++;
       f.close();
       f = dir.openNextFile();
