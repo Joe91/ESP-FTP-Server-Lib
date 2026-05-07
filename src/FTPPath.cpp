@@ -30,13 +30,14 @@ String FTPPath::getPath() const {
 }
 
 String FTPPath::getFilePath(String filename) const {
-  if (*filename.begin() == '/') {
-    return filename;
+  String sane_filename = sanitize(filename);
+  if (*sane_filename.begin() == '/') {
+    return sane_filename;
   }
   if (_Path.size() == 0) {
-    return "/" + filename;
+    return "/" + sane_filename;
   }
-  return getPath() + "/" + filename;
+  return getPath() + "/" + sane_filename;
 }
 
 std::list<String> FTPPath::splitPath(String path) {
@@ -62,4 +63,44 @@ String FTPPath::createPath(const std::list<String> &path) {
     new_path += p;
   }
   return new_path;
+}
+
+String FTPPath::sanitize(String input) const {
+  String output = "";
+  // Pre-allocate memory to prevent heap fragmentation
+  output.reserve(input.length());
+
+  for (size_t i = 0; i < input.length(); i++) {
+    unsigned char c = input[i];
+    // Check for illegal chars, percent sign, or non-printable control chars
+    const String illegal_chars = ":*?\"<>|%";
+    if (illegal_chars.indexOf(c) != -1 || c < 32) {
+      output += '%';
+      output += to_hex(c >> 4);
+      output += to_hex(c & 0x0F);
+    } else {
+      output += (char)c;
+    }
+  }
+  return output;
+}
+
+String FTPPath::reparse(String input) const {
+  String output = "";
+  output.reserve(input.length());
+
+  for (size_t i = 0; i < input.length(); i++) {
+    if (input[i] == '%' && i + 2 < input.length()) {
+      int high = from_hex(input[i + 1]);
+      int low  = from_hex(input[i + 2]);
+
+      if (high != -1 && low != -1) {
+        output += (char)((high << 4) | low);
+        i += 2; // Skip the two hex characters
+        continue;
+      }
+    }
+    output += input[i];
+  }
+  return output;
 }

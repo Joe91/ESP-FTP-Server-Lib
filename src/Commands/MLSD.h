@@ -74,6 +74,7 @@ public:
       data_print(" ");
       String filename = f.name();
       filename.remove(0, filename.lastIndexOf('/') + 1);
+      filename = listPath.reparse(filename);
       data_println(filename);
 
       cnt++;

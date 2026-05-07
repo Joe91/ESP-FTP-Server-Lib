@@ -55,6 +55,7 @@ public:
       for (int i = 0; i < fill_cnt; i++) {
         data_print(" ");
       }
+      filename = listPath.reparse(filename);
       data_println(filesize + " Jan 01  1970 " + filename);
       cnt++;
       f.close();
