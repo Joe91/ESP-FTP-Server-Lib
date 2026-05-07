@@ -21,7 +21,7 @@ public:
     File dir = _Filesystem->open(path.getPath());
     if (dir.isDirectory()) {
       WorkDirectory = path;
-      SendResponse(FtpCodes::COMMAND_OK, "Ok. Current directory is " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::COMMAND_OK, "Ok. Current directory is " + WorkDirectory.getClearPath());
     } else {
       SendResponse(FtpCodes::FILE_ACTION_NOT_TAKEN, "Directory does not exist");
     }

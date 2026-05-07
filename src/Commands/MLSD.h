@@ -38,7 +38,7 @@ public:
     if (!root || !root.isDirectory()) {
       root.close();
       CloseDataConnection();
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getClearPath());
       return;
     }
 

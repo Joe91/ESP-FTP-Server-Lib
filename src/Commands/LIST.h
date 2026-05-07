@@ -34,7 +34,7 @@ public:
     File dir = _Filesystem->open(listPath.getPath()); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getClearPath());
       return;
     }
     int cnt = 2;

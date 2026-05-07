@@ -12,6 +12,7 @@ FTPPath::~FTPPath() {
 }
 
 void FTPPath::changePath(String path) {
+  path                = sanitize(path);
   std::list<String> p = splitPath(path);
   if (!path.isEmpty() && path[0] == '/') {
     _Path.assign(p.begin(), p.end());
@@ -27,6 +28,10 @@ void FTPPath::goPathUp() {
 
 String FTPPath::getPath() const {
   return createPath(_Path);
+}
+
+String FTPPath::getClearPath() const {
+  return reparse(createPath(_Path));
 }
 
 String FTPPath::getFilePath(String filename) const {

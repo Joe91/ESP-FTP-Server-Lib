@@ -19,7 +19,7 @@ public:
     File dir = _Filesystem->open(WorkDirectory.getPath()); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getClearPath());
       return;
     }
     int cnt = 2;

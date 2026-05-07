@@ -14,6 +14,7 @@ public:
   void goPathUp();
 
   String getPath() const;
+  String getClearPath() const;
   String getFilePath(String filename) const;
 
   static std::list<String> splitPath(String path);

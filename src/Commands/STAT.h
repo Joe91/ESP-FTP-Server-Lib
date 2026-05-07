@@ -15,7 +15,7 @@ public:
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     File dir = _Filesystem->open(WorkDirectory.getPath()); //
     if (!dir || !dir.isDirectory()) {
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getClearPath());
       return;
     }
     int  cnt = 0;
