@@ -66,6 +66,9 @@ String FTPPath::createPath(const std::list<String> &path) {
 }
 
 String FTPPath::sanitize(String input) const {
+#ifndef ENABLE_FTP_SANITIZATION
+  return input;
+#else
   String output = "";
   // Pre-allocate memory to prevent heap fragmentation
   output.reserve(input.length());
@@ -83,9 +86,13 @@ String FTPPath::sanitize(String input) const {
     }
   }
   return output;
+#endif
 }
 
 String FTPPath::reparse(String input) const {
+#ifndef ENABLE_FTP_SANITIZATION
+  return input;
+#else
   String output = "";
   output.reserve(input.length());
 
@@ -103,4 +110,5 @@ String FTPPath::reparse(String input) const {
     output += input[i];
   }
   return output;
+#endif
 }
