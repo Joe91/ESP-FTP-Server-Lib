@@ -38,7 +38,7 @@ public:
     if (!root || !root.isDirectory()) {
       root.close();
       CloseDataConnection();
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getClearPath());
       return;
     }
 
@@ -74,6 +74,7 @@ public:
       data_print(" ");
       String filename = f.name();
       filename.remove(0, filename.lastIndexOf('/') + 1);
+      filename = listPath.reparse(filename);
       data_println(filename);
 
       cnt++;

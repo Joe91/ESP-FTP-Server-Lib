@@ -15,7 +15,7 @@ public:
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     File dir = _Filesystem->open(WorkDirectory.getPath()); //
     if (!dir || !dir.isDirectory()) {
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getClearPath());
       return;
     }
     int  cnt = 0;
@@ -34,7 +34,7 @@ public:
       for (int i = 0; i < fill_cnt; i++) {
         data_print(" ");
       }
-      data_println(filesize + " Jan 01  1970 " + filename);
+      data_println(filesize + " Jan 01  1970 " + WorkDirectory.reparse(filename));
       cnt++;
       f.close();
       f = dir.openNextFile();

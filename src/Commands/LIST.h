@@ -34,7 +34,7 @@ public:
     File dir = _Filesystem->open(listPath.getPath()); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + listPath.getClearPath());
       return;
     }
     int cnt = 2;
@@ -55,6 +55,7 @@ public:
       for (int i = 0; i < fill_cnt; i++) {
         data_print(" ");
       }
+      filename = listPath.reparse(filename);
       data_println(filesize + " Jan 01  1970 " + filename);
       cnt++;
       f.close();

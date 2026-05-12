@@ -19,7 +19,7 @@ public:
     File dir = _Filesystem->open(WorkDirectory.getPath()); //
     if (!dir || !dir.isDirectory()) {
       CloseDataConnection();
-      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getPath());
+      SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open directory " + WorkDirectory.getClearPath());
       return;
     }
     int cnt = 2;
@@ -29,7 +29,7 @@ public:
     while (f) {
       String filename = f.name();
       filename.remove(0, filename.lastIndexOf('/') + 1);
-      data_println(filename);
+      data_println(WorkDirectory.reparse(filename));
       cnt++;
       f.close();
       f = dir.openNextFile();

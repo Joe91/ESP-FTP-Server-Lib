@@ -13,7 +13,7 @@ public:
 
   void run(FTPPath &WorkDirectory, const std::vector<String> &Line) override {
     WorkDirectory.goPathUp();
-    SendResponse(FtpCodes::COMMAND_OK, "Ok. Current directory is " + WorkDirectory.getPath());
+    SendResponse(FtpCodes::COMMAND_OK, "Ok. Current directory is " + WorkDirectory.getClearPath());
   }
 };
 
