@@ -1,11 +1,13 @@
 # ESP-FTP-Server-Lib
 
+This is a fork form https://github.com/peterus/ESP-FTP-Server-Lib, since there seems to be no maintanance anymore.
 This library will provide a simple and modern FTP server for your ESP32 or ESP8266 device.
 You can setup multiple users and mutliple filesystems (SD-Card, MMC-Card or/and SPIFFS).
 
 ## Examples
 
 In the example folder you can find a very simple usage of the FTP server. You just need to setup the users, add the filesystems which you want to use, and call the handle function in the loop.
+With the Compileflag -DENABLE_FTP_SANITIZATION you can enable support for special-characters like ":" or "?" by URL-Encodeing of Files.
 
 ## Known Commands to the server
 

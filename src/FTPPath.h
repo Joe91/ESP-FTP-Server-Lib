@@ -24,6 +24,7 @@ public:
   String reparse(String input) const;
 
 private:
+#ifdef ENABLE_FTP_SANITIZATION
   // Helper to convert nibble to hex character
   char to_hex(unsigned char v) const {
     return v < 10 ? '0' + v : 'A' + (v - 10);
@@ -39,6 +40,7 @@ private:
       return c - 'a' + 10;
     return -1;
   }
+#endif
 
   std::list<String> _Path;
 };

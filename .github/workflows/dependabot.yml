@@ -20,4 +20,3 @@ jobs:
         uses: peterus/platformio_dependabot@main
         with:
           github_token: ${{ secrets.DEPENDABOT_PAT }}
-          github_repo_path: ${{ github.repository }}
