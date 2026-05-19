@@ -25,6 +25,11 @@ public:
 
 private:
 #ifdef ENABLE_FTP_SANITIZATION
+  static const String &getInvalidChars() {
+    static const String invalidChars = ":*?\"<>|%";
+    return invalidChars;
+  }
+
   // Helper to convert nibble to hex character
   char to_hex(unsigned char v) const {
     return v < 10 ? '0' + v : 'A' + (v - 10);

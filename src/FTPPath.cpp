@@ -80,9 +80,8 @@ String FTPPath::sanitize(String input) const {
 
   for (size_t i = 0; i < input.length(); i++) {
     unsigned char c = input[i];
-    // Check for illegal chars, percent sign, or non-printable control chars
-    const String illegal_chars = ":*?\"<>|%";
-    if (illegal_chars.indexOf(c) != -1 || c < 32) {
+    // Check for illegal chars or percent sign
+    if (getInvalidChars().indexOf(c) != -1) {
       output += '%';
       output += to_hex(c >> 4);
       output += to_hex(c & 0x0F);
@@ -107,9 +106,12 @@ String FTPPath::reparse(String input) const {
       int low  = from_hex(input[i + 2]);
 
       if (high != -1 && low != -1) {
-        output += (char)((high << 4) | low);
-        i += 2; // Skip the two hex characters
-        continue;
+        char c = (char)((high << 4) | low);
+        if (getInvalidChars().indexOf(c) != -1) {
+          output += c;
+          i += 2; // Skip the two hex characters
+          continue;
+        }
       }
     }
     output += input[i];
