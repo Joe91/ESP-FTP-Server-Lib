@@ -22,6 +22,11 @@ public:
       *_PassiveMode = false;
     }
     std::vector<String> connection_details = Split<std::vector<String>>(Line[1], ',');
+    // h1,h2,h3,h4,p1,p2 -- anything else used to read past the end of the vector
+    if (connection_details.size() != 6) {
+      SendResponse(FtpCodes::SYNTAX_ERROR_PARAMS, "Invalid PORT argument");
+      return;
+    }
     for (int i = 0; i < 4; i++) {
       (*_DataAddress)[i] = connection_details[i].toInt();
     }

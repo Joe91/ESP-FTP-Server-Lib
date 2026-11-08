@@ -7,8 +7,6 @@
 #include "../FTPResponseCodes.h"
 #include "../common.h"
 
-#define FTP_BUF_SIZE 4096
-
 class RETR : public FTPCommandTransfer {
 public:
   explicit RETR(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommandTransfer("RETR", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
@@ -24,26 +22,48 @@ public:
     String path = WorkDirectory.getFilePath(Line[1]);
     _file       = _Filesystem->open(path);
     if (!_file || _file.isDirectory()) {
+      _file.close();
       CloseDataConnection();
       SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open " + path);
+      return;
+    }
+    if (!startTransfer()) {
+      finishTransfer();
+      CloseDataConnection();
+      SendResponse(FtpCodes::FILE_ACTION_ABORTED_LOCAL_ERROR, "Out of memory");
       return;
     }
     workOnData();
   }
 
   void workOnData() override {
-    uint8_t buffer[FTP_BUF_SIZE];
-    size_t  nb = _file.read(buffer, FTP_BUF_SIZE);
-    if (nb > 0) {
-      data_send(buffer, nb);
-      return;
-    }
-    CloseDataConnection();
-    SendResponse(FtpCodes::TRANSFER_COMPLETE, "File successfully transferred");
-    _file.close();
+    const unsigned long start = millis();
+    do {
+      size_t nb = _file.read(_buffer.get(), FTP_BUF_SIZE);
+      if (nb == 0) {
+        CloseDataConnection();
+        SendResponse(FtpCodes::TRANSFER_COMPLETE, "File successfully transferred");
+        finishTransfer();
+        return;
+      }
+      size_t sent = data_send(_buffer.get(), nb);
+      if (sent > 0) {
+        _lastProgress = millis();
+      }
+      if (sent < nb) {
+        // the client stopped reading or closed the data connection: don't read the rest of the file into nowhere
+        if (sent == 0 && (!dataConnected() || idleTimedOut())) {
+          CloseDataConnection();
+          SendResponse(FtpCodes::CONNECTION_CLOSED, "Transfer aborted, data connection lost");
+          finishTransfer();
+          return;
+        }
+        // socket buffer full: send the rest next time
+        _file.seek(_file.position() - (nb - sent));
+        return;
+      }
+    } while (millis() - start < FTP_TRANSFER_SLICE_MS);
   }
-
-private:
 };
 
 #endif

@@ -90,8 +90,12 @@ void FTPFilesystem::printFilesystems() {
 }
 
 FS *FTPFilesystem::getFilesystem(String path) {
-  std::list<String>                    splitted = FTPPath::splitPath(path);
-  String                               name     = *(splitted.begin());
+  std::list<String> splitted = FTPPath::splitPath(path);
+  if (splitted.empty()) {
+    // "/" is the virtual root that lists the filesystems; it isn't on any of them (e.g. "DELE /")
+    return 0;
+  }
+  String                               name = *(splitted.begin());
   std::map<String, fs::FS *>::iterator iter     = _Filesystems.find(name);
   if (iter == _Filesystems.end()) {
 #ifndef NO_GLOBAL_INSTANCES

@@ -29,6 +29,14 @@ void get_multiple_fs()
 	TEST_ASSERT_EQUAL_PTR(&SPIFFS, spiffs);
 }
 
+void root_is_on_no_fs()
+{
+	FTPFilesystem f;
+	f.addFilesystem("SD", &SD);
+	TEST_ASSERT_NULL(f.getFilesystem("/"));
+	TEST_ASSERT_FALSE(f.exists("/"));
+	TEST_ASSERT_FALSE(f.remove("/"));
+}
 
 void setup()
 {
@@ -36,6 +44,7 @@ void setup()
 	RUN_TEST(get_path_without_fs);
 	RUN_TEST(get_fs);
 	RUN_TEST(get_multiple_fs);
+	RUN_TEST(root_is_on_no_fs);
 	UNITY_END();
 }
 

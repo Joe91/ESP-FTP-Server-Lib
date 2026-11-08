@@ -91,7 +91,7 @@ bool FTPConnection::readUntilLineEnd() {
       _Line = ""; // Reset buffer for next line
       return true;
     }
-    if (c >= 32) {
+    if (c >= 32 && _Line.length() < FTP_CMD_SIZE) { // a client that never sends a line end can't fill the heap
       _Line += c;
     }
   }
@@ -111,13 +111,14 @@ bool FTPConnection::handle() {
     return true;
   }
   // we have a new command in the queue:
-#ifndef NO_GLOBAL_INSTANCES
-  Serial.println(_Line);
-#else
-  logPrintlnD(_Line);
-#endif
   String command = _LineSplited[0];
   command.toUpperCase();
+  // log the command only: its argument may be a password
+#ifndef NO_GLOBAL_INSTANCES
+  Serial.println(command);
+#else
+  logPrintlnD(command);
+#endif
 
   // This commands are always possible:
   if (command == "SYST") {
