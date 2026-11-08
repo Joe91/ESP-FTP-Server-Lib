@@ -27,7 +27,7 @@ public:
       SendResponse(FtpCodes::FILE_NOT_FOUND, "Can't open " + path);
       return;
     }
-    if (!startTransfer()) {
+    if (!startTransfer(1)) {
       finishTransfer();
       CloseDataConnection();
       SendResponse(FtpCodes::FILE_ACTION_ABORTED_LOCAL_ERROR, "Out of memory");
@@ -39,14 +39,14 @@ public:
   void workOnData() override {
     const unsigned long start = millis();
     do {
-      size_t nb = _file.read(_buffer.get(), FTP_BUF_SIZE);
+      size_t nb = _file.read(_buffers[0], _bufferSize);
       if (nb == 0) {
         CloseDataConnection();
         SendResponse(FtpCodes::TRANSFER_COMPLETE, "File successfully transferred");
         finishTransfer();
         return;
       }
-      size_t sent = data_send(_buffer.get(), nb);
+      size_t sent = data_send(_buffers[0], nb);
       if (sent > 0) {
         _lastProgress = millis();
       }

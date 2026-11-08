@@ -4,9 +4,9 @@
 #include <Arduino.h>
 #include <WiFiClient.h>
 #include <WiFiServer.h>
-#include <memory>
 #include <vector>
 #if defined(ESP32)
+#include <esp_heap_caps.h>
 #include <lwip/sockets.h>
 #endif
 
@@ -189,8 +189,17 @@ private:
   WiFiClient       *_DataConnection;
 };
 
+// Size of one transfer buffer. Uploads use two of them, downloads one; with too little free memory
+// the size is halved down to FTP_BUF_SIZE_MIN.
 #ifndef FTP_BUF_SIZE
+#if defined(ESP8266)
 #define FTP_BUF_SIZE 4096
+#else
+#define FTP_BUF_SIZE 16384
+#endif
+#endif
+#ifndef FTP_BUF_SIZE_MIN
+#define FTP_BUF_SIZE_MIN 1024
 #endif
 // handle() returns after this much time spent on one transfer, so the caller's loop keeps running
 #ifndef FTP_TRANSFER_SLICE_MS
@@ -204,6 +213,9 @@ private:
 class FTPCommandTransfer : public FTPCommand {
 public:
   FTPCommandTransfer(String Name, int ExpectedArgumentCnt, WiFiClient *const Client, FTPFilesystem *const Filesystem = 0, IPAddress *DataAddress = 0, int *DataPort = 0, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommand(Name, ExpectedArgumentCnt, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
+  }
+  virtual ~FTPCommandTransfer() {
+    freeBuffers();
   }
 
   virtual void workOnData() = 0;
@@ -221,30 +233,67 @@ public:
   }
 
 protected:
-  // The transfer buffer lives on the heap for the duration of a transfer only: 4 KB on the stack of the
-  // caller's loop task (8 KB on ESP32 Arduino) left too little for everything else running there.
-  bool startTransfer() {
-    if (!_buffer) {
-      _buffer.reset(new (std::nothrow) uint8_t[FTP_BUF_SIZE]);
+  static const size_t MaxBuffers = 2;
+
+  // Allocates `count` buffers for a transfer (heap, not the caller's stack). Returns false if not even
+  // FTP_BUF_SIZE_MIN bytes each are available.
+  bool startTransfer(size_t count) {
+    freeBuffers();
+    for (size_t size = FTP_BUF_SIZE; size >= FTP_BUF_SIZE_MIN; size /= 2) {
+      bool ok = true;
+      for (size_t i = 0; i < count; i++) {
+        _buffers[i] = allocBuffer(size);
+        ok          = ok && (_buffers[i] != nullptr);
+      }
+      if (ok) {
+        _bufferSize   = size;
+        _lastProgress = millis();
+        return true;
+      }
+      freeBuffers();
     }
-    _lastProgress = millis();
-    return static_cast<bool>(_buffer);
+    return false;
   }
 
-  void finishTransfer() {
+  virtual void finishTransfer() {
     if (_file) {
       _file.close();
     }
-    _buffer.reset();
+    freeBuffers();
   }
 
   bool idleTimedOut() const {
     return millis() - _lastProgress > FTP_TRANSFER_IDLE_TIMEOUT_MS;
   }
 
-  File                       _file;
-  std::unique_ptr<uint8_t[]> _buffer;
-  unsigned long              _lastProgress = 0;
+  File          _file;
+  uint8_t      *_buffers[MaxBuffers] = {nullptr, nullptr};
+  size_t        _bufferSize           = 0;
+  unsigned long _lastProgress         = 0;
+
+private:
+  static uint8_t *allocBuffer(size_t size) {
+#if defined(ESP32)
+    // internal RAM: the SD driver can use it for DMA directly, without copying through a bounce buffer
+    return static_cast<uint8_t *>(heap_caps_aligned_alloc(32, size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+#else
+    return static_cast<uint8_t *>(malloc(size));
+#endif
+  }
+
+  void freeBuffers() {
+    for (size_t i = 0; i < MaxBuffers; i++) {
+      if (_buffers[i] != nullptr) {
+#if defined(ESP32)
+        heap_caps_free(_buffers[i]);
+#else
+        free(_buffers[i]);
+#endif
+        _buffers[i] = nullptr;
+      }
+    }
+    _bufferSize = 0;
+  }
 };
 
 #endif
