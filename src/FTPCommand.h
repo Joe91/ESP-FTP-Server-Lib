@@ -256,6 +256,11 @@ protected:
   }
 
   virtual void finishTransfer() {
+    closeTransfer();
+  }
+
+  // closes the file and frees the buffers (non-virtual, so destructors can use it)
+  void closeTransfer() {
     if (_file) {
       _file.close();
     }
@@ -268,8 +273,8 @@ protected:
 
   File          _file;
   uint8_t      *_buffers[MaxBuffers] = {nullptr, nullptr};
-  size_t        _bufferSize           = 0;
-  unsigned long _lastProgress         = 0;
+  size_t        _bufferSize          = 0;
+  unsigned long _lastProgress        = 0;
 
 private:
   static uint8_t *allocBuffer(size_t size) {

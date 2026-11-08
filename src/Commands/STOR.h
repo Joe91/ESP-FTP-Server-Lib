@@ -36,9 +36,10 @@ public:
   explicit STOR(WiFiClient *const Client, FTPFilesystem *const Filesystem, IPAddress *DataAddress, int *DataPort, WiFiServer **PassiveServer = 0, bool *PassiveMode = 0) : FTPCommandTransfer("STOR", 1, Client, Filesystem, DataAddress, DataPort, PassiveServer, PassiveMode) {
   }
 
-  ~STOR() {
+  ~STOR() override {
     // the connection can go away in the middle of an upload: the writer must be done with buffers and file first
-    finishTransfer();
+    releaseWriter();
+    closeTransfer();
 #if defined(ESP32)
     delete _ctx;
 #endif
@@ -114,6 +115,14 @@ public:
 
 protected:
   void finishTransfer() override {
+    releaseWriter();
+    closeTransfer();
+  }
+
+private:
+  // Ends the writer task (if any) before the file and the buffers are released.
+  void releaseWriter() {
+#if defined(ESP32)
     if (!waitForWriter()) {
       // The writer hangs in a write and still uses its context (with its own copy of the file) and the
       // buffers: leave them to it instead of pulling them away under it.
@@ -123,10 +132,9 @@ protected:
       }
       _file = File();
     }
-    FTPCommandTransfer::finishTransfer();
+#endif
   }
 
-private:
   // closes and removes the incomplete file
   void failTransfer(int code, const String &text) {
     finishTransfer();
@@ -147,7 +155,7 @@ private:
     QueueHandle_t     toWriter = nullptr; // filled buffers (and the stop request) for the writer
     QueueHandle_t     toReader = nullptr; // buffers the writer is done with
     SemaphoreHandle_t done     = nullptr;
-    std::atomic<bool> error {false};
+    std::atomic<bool> error{false};
     File              file;
     uint8_t          *buffers[MaxBuffers] = {nullptr, nullptr};
 
@@ -261,8 +269,11 @@ private:
 #else
   // without a writer task the file is written right here, one block at a time
   bool takeFreeBuffer() {
+    if (_buffers[0] == nullptr) {
+      return false;
+    }
     _current = 0;
-    _fill    = 0;
+    _fill = 0;
     return true;
   }
 
@@ -274,11 +285,12 @@ private:
       _writeError = true;
     }
     _current = -1;
-    _fill    = 0;
+    _fill = 0;
   }
 
-  bool waitForWriter() {
-    return true;
+  // the blocks were written synchronously already: only report how that went
+  bool waitForWriter() const {
+    return !_writeError;
   }
 
   bool writeFailed() const {

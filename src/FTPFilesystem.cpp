@@ -96,7 +96,7 @@ FS *FTPFilesystem::getFilesystem(String path) {
     return 0;
   }
   String                               name = *(splitted.begin());
-  std::map<String, fs::FS *>::iterator iter     = _Filesystems.find(name);
+  std::map<String, fs::FS *>::iterator iter = _Filesystems.find(name);
   if (iter == _Filesystems.end()) {
 #ifndef NO_GLOBAL_INSTANCES
     Serial.println("[ERROR] Filesystem not found!");
